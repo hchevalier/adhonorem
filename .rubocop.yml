@@ -1,0 +1,15 @@
+AllCops:
+  Exclude:
+    - 'spec/**/*'
+
+MethodLength:
+  Max: 25
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+BlockLength:
+  Max: 25

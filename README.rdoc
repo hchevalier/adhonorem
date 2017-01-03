@@ -1,0 +1,225 @@
+= AdHonorem
+
+AdHonorem assumes that you want to manage the gamification of your Rails application code-side, using Ruby files to represent your badges rather than depending on entries stored in a database.
+
+This way, your badges are never to be altered by error, can be under revision control and, most of all, can be covered by your tests suite before they are deployed.
+
+== Installation
+
+Add this to your Gemfile:
+
+  gem 'adhonorem'
+
+and run the bundle install command.
+
+Ensure you already have an ActiveRecord model representing your users before executing the following commands:
+
+  # Generate initializer with AdHonorem settings
+  rails g adhonorem:initializer
+
+  # Generate migrations for progress-tracking and achievement ActiveRecord models
+  rails g adhonorem:migrations
+
+  # Execute the migrations
+  rake db:migrate
+
+=== How to use
+
+==== The base class
+
+AdHonorem::Badge is the main class that your own badges will have to inherit from.
+
+It uses static-record gem to provide an ActiveRecord-like query interface allowing you to query over the filesystem Ruby files. For the moment, no path setting is possible and your badge files are expected to be saved under /app/models/badges/ folder. You can create subfolders if you want.
+
+Documentation for static-record's query interface can be found here: https://github.com/hchevalier/static_record
+
+==== Your badge files
+
+A simple badge file looks like this:
+
+  class SimpleBadge < AdHonorem::Badge
+    # The slug allows to reference the badge and must be unique
+    attribute :slug,          'simple_badge'
+    # The following attributes can be displayed to your users when needed
+    attribute :name,          'Simple badge'
+    attribute :description,   'This is a simple badge'
+    attribute :category,      'General'
+    # Point are not used yet.
+    # In a near future, a migration will add a new column to your users table and grant them points
+    attribute :points,        10
+    # The following attributes can be displayed to your users when needed
+    attribute :icon_locked,   Rails.root.join('public', 'badges', 'locked', 'simple.png')
+    attribute :icon_unlocked, Rails.root.join('public', 'badges', 'unlocked', 'simple.png')
+    # The 'legacy' attribute allow you to defined when a badge cannot be obtained anymore
+    attribute :legacy,        false
+
+    def initialize
+      # Important, do not forget to call super
+      super
+
+      # Parameter 1: checker method called when the objective is triggered.
+      # The user progress will increase by 1 if the method returns true
+      # It won't increase if the method returns false
+      # Parameter 2: The name of the objective. Can be displayed to your users when needed
+      # Parameter 3: The description of the objective. Can be displayed to your users when needed
+      # Parameter 4: Optional, defaults to 1. Defines how many times the objective must be
+      # successfully triggered to be completed
+      add_objective(:trigger_me, 'Pull the trigger', 'Trigger the objective to unlock the badge', 3)
+    end
+
+    def trigger_me(user, params)
+      true
+    end
+  end
+
+Let's say that this file is saved in /app/models/badges/general/simple.rb
+
+All attributes are mandatory for the moment, I'll try to make some of them have a default value as soon as possible.
+
+The #initialize method is used to add as many objectives as you want or to add sub-badges (see 'Meta Badge')
+
+You can see that for this badge, a user will have to successfully trigger the 'Pull the trigger' objective 3 times to unlock the badge.
+
+==== Triggering
+
+To trigger an objective, you'll have to call it from where you want in your code (model, controller, whatever...)
+
+  AdHonorem::Badge.find('simple_badge').set_context(current_user).trigger(:trigger_me)
+
+Note that current_user is used for the example, you can use any user here.
+
+This line of code will call the checker with the same name (which always return true in our example), which will lead to the user progression over this specific objective.
+
+You can trigger an objective several times in a row with
+
+  AdHonorem::Badge.find('simple_badge').set_context(current_user).trigger(:trigger_me, amount: 5)
+
+The 'Pull the trigger' objective will be successfully triggered 5 times, resulting in the user being granted the SimpleBadge.
+
+As you may have noticed, checker methods always receive 2 parameters:
+- The user specified with #set_context
+- A 'params' object
+
+Params can be passed to checkers using a 'data' attribute when calling #trigger
+
+  params = { ammos_left: @ammos }
+  AdHonorem::Badge.find('simple_badge').set_context(current_user).trigger(:trigger_me, amount: 5, data: params)
+
+Now you can access everything in the checker
+
+  def trigger_me(user, params)
+    user.alive? && !params[:ammos_left].zero?
+  end
+
+==== Result
+
+The #trigger method will return the command result as a symbol:
+- :legacy_badge when the badge cannot be unlocked anymore
+- :already_done if the badge is already unlocked or if the objective is already fulfilled
+- :failed_check when the checker method returns false
+- :completed_badge when the user just unlocked the badge
+- :completed_step when the user fulfilled the objective but not the whole badge (still have other objectives to complete)
+- :triggered when the checker method returns true but it's not enough to complete the objective (still have some successful triggers to perform)
+
+==== Progress and completion
+
+Several methods allow you to give your users informations about their progression:
+
+  # Get progression for a specific badge
+  badge = AdHonorem::Badge.find('simple_badge')
+  badge.complete? # check if every objective is complete
+  badge.complete?(:trigger_me) # check if a single objective is complete
+  badge.progress # list completion for each objective
+    => Pull the trigger: 0/1
+  badge.progress(:step) # Same as above, :step being the default parameter
+  badge.progress(:global) # Returns the percentage of completion
+    => 78.0
+
+  # Get progression for a specific objective
+  progression = AdHonorem::Progress.find_by(user: current_user, badge_static_record_type: 'SimpleBadge', objective_slug: 'trigger_me')
+  progression.progress(:percentage)
+    => 33.3
+  progression.progress(:stringified)
+    => 1/3
+  progression.done?
+    => false
+
+  # Get unlocked badges for a specific user
+  unlocked_badges = AdHonorem::Achievement.find_by(user: current_user, state: :done)
+  unlocked_badges.first.badge # returns an instance of the first unlocked badge
+    => #<SimpleBadge:0x007fcfe9c7cf48>
+
+==== Events and hooks
+
+As manually triggering every badge won't be relevant if several badges can be unlocked through the same piece of code, AdHonorem provides an event/hook system.
+
+Under the attributes of your badge, just before the initialize method, add the following:
+  hook :<event_name>, to: [:<responder_one>, :<responder_two>]
+
+Where <event_name> is an arbitrary event name and where <responder_one> and <responder_two> are checker methods of your badge.
+
+Several badges can hook a similar event name.
+
+In your models or controllers (or whatever), you can raise an event with
+
+  AdHonorem::Badge.dispatch(current_user, :<event_name>, params)
+
+'params' is optional and works the same as for the #trigger method, for instance
+
+  { amount: 1, data: { called_from_file: __FILE__ } }
+
+The event will bubble to all the badges that have a hook for it and will try to triggers the responder(s) as if they had been called through #trigger
+
+==== Meta Badge
+
+Here is an example of a meta badge
+
+  class MetaBadge < AdHonorem::Badge
+    attribute :slug,          'meta_badge'
+    attribute :name,          'Meta badge'
+    #### truncated for the sake of the example, other attributes are still mandatory ####
+
+    def initialize
+      super
+
+      add_sub_badge(:sub_badge_one)
+      add_sub_badge(:sub_badge_two)
+    end
+  end
+
+As you can see, we defined sub-badges in the initialize method instead of objectives.
+
+Each time this badge will be triggered for an objective, it will bubble it to all of its sub-badges (except for those already unlocked by the user).
+
+Meta badges respond to the #complete? method with true when all their sub-badges are complete too, though they don't unlock. You won't find an AdHonorem::Achievement for meta badges. It allows you to add an harder to get sub-badge to an existing meta later if you want.
+
+Important: Your sub-badges should not declare event hooks directly! Instead, hook the events to your meta badge this way:
+
+  class MetaBadge < AdHonorem::Badge
+    attribute :slug,          'meta_badge'
+    attribute :name,          'Meta badge'
+    #### truncated for the sake of the example, other attributes are still mandatory ####
+
+    hook :level_up, to: :level_up
+
+    def initialize
+      super
+
+      add_sub_badge(:sub_badge_one)
+      add_sub_badge(:sub_badge_two)
+    end
+  end
+
+  # Each time AdHonorem::Badge.dispatch(current_user, :level_up) is called, the level_up method of both sub_badge_one and sub_badge_two badges will be triggered
+
+== Questions?
+
+If you have any question or doubt regarding StaticRecord which you cannot find the solution to in the documentation, you can send me an email. I'll try to answer in less than 24 hours.
+
+== Bugs?
+
+If you find a bug please add an issue on GitHub or fork the project and send a pull request.
+
+== Future
+
+AdHonorem is in active development, so be ready for leaderboards, sample apps with ready-to-use partials and JS/CSS to provide you with a badge-list interface, better badge category support, possibility to order your categories and badge inside them easily, etc...
