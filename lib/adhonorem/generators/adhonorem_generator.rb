@@ -4,8 +4,10 @@ module Adhonorem
 
     def copy_files
       time = Time.zone.now.strftime('%Y%m%d%H%M')
-      template 'progress_migration.rb', "db/migrate/#{time}00_create_adhonorem_progress.rb"
-      template 'achievement_migration.rb', "db/migrate/#{time}01_create_adhonorem_achievement.rb"
+      progress_mig = "db/migrate/#{time}00_create_adhonorem_progress.rb"
+      achievement_mig = "db/migrate/#{time}01_create_adhonorem_achievement.rb"
+      template 'progress_migration.rb', progress_mig
+      template 'achievement_migration.rb', achievement_mig
     end
   end
 

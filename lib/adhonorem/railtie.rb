@@ -4,6 +4,12 @@ class Railtie < Rails::Railtie # :nodoc:
       require 'adhonorem/models/objective'
       require 'adhonorem/models/achievement'
       require 'adhonorem/models/progress'
+
+      require 'adhonorem/concerns/user_contexted_concern'
+      require 'adhonorem/concerns/objective_concern'
+      require 'adhonorem/concerns/hooking_concern'
+      require 'adhonorem/concerns/meta_concern'
+      require 'adhonorem/concerns/reward_concern'
       require 'adhonorem/models/badge'
 
       ActiveSupport.run_load_hooks(:adhonorem, AdHonorem::Badge)
