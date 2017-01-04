@@ -7,10 +7,15 @@ Gem::Specification.new do |s|
   s.version     = AdHonorem::VERSION
   s.authors     = ['Hugo Chevalier']
   s.email       = ['drakhaine@gmail.com']
-  s.homepage    = 'http://rubygems.org/gems/adhonorem'
+  s.homepage    = 'https://github.com/hchevalier/adhonorem'
   s.date        = '2017-01-04'
   s.summary     = 'A gamification gem'
-  s.description = 'A complete gamification gem designed for Ruby on Rails'
+  s.description = <<-EOF
+    A complete gamification gem designed for Ruby on Rails.
+    AdHonorem assumes that you want to manage the gamification of your
+    Rails application code-side, using Ruby files to represent your badges
+    rather than depending on entries stored in a database.
+  EOF
   s.license     = 'MIT'
 
   s.files       = Dir[
