@@ -2,6 +2,7 @@ module AdHonorem
   # AdHonorem core class, must be inherited from
   class Badge < ::StaticRecord::Base
     include AdHonorem::UserContextedConcern
+    include AdHonorem::DefaultAttributesConcern
     include AdHonorem::ObjectiveConcern
     include AdHonorem::HookingConcern
     include AdHonorem::MetaConcern

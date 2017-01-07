@@ -6,6 +6,7 @@ class Railtie < Rails::Railtie # :nodoc:
       require 'adhonorem/models/progress'
 
       require 'adhonorem/concerns/user_contexted_concern'
+      require 'adhonorem/concerns/default_attributes_concern'
       require 'adhonorem/concerns/objective_concern'
       require 'adhonorem/concerns/hooking_concern'
       require 'adhonorem/concerns/meta_concern'
