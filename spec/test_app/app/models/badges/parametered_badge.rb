@@ -2,7 +2,6 @@ class ParameteredBadge < AdHonorem::Badge
   attribute :slug,          'parametered_badge'
   attribute :name,          'Parametered badge'
   attribute :description,   'This is a parametered_badge badge'
-  attribute :category,      'General'
   attribute :points,        10
   attribute :icon_locked,   Rails.root.join('public', 'badges', 'locked', 'parametered_badge.png')
   attribute :icon_unlocked, Rails.root.join('public', 'badges', 'unlocked', 'parametered_badge.png')

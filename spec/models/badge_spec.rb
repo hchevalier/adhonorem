@@ -21,6 +21,12 @@ RSpec.describe AdHonorem::Badge do
       instantiate_badges
     end
 
+    it 'allows to reload the context to make sure user data is up to date' do
+      @user.level = 30
+      @user.save
+      expect(@normal_badge.reload_context!.user.level).to eql(30)
+    end
+
     it 'works with user set' do
       expect { @normal_badge.progress }.not_to raise_error
     end
@@ -58,6 +64,17 @@ RSpec.describe AdHonorem::Badge do
       expect(badge.complete?).to be true
       expect(res[:completed_badge].include?('ParameteredBadge#master_sword'))
       expect(res[:already_done].include?('ParameteredBadge#master_bow'))
+    end
+  end
+
+  context 'getting badges grouped by category' do
+    it 'groups by category' do
+      cat = AdHonorem::Category.find('other')
+      expected_format = {
+        'Other' => [AdHonorem::Badge.find('conditionnal_badge')]
+      }
+      res = AdHonorem::Badge.where(category: cat).by_category
+      expect(res['Other'].first.slug).to eql(expected_format[cat.name].first.slug)
     end
   end
 end

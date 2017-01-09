@@ -7,11 +7,17 @@ class Railtie < Rails::Railtie # :nodoc:
 
       require 'adhonorem/concerns/user_contexted_concern'
       require 'adhonorem/concerns/default_attributes_concern'
+      require 'adhonorem/concerns/progression_concern'
       require 'adhonorem/concerns/objective_concern'
       require 'adhonorem/concerns/hooking_concern'
       require 'adhonorem/concerns/meta_concern'
       require 'adhonorem/concerns/reward_concern'
+
+      require 'adhonorem/models/category'
       require 'adhonorem/models/badge'
+
+      require 'adhonorem/models/scopes'
+      StaticRecord::Relation.send(:include, AdHonorem::Scopes)
 
       ActiveSupport.run_load_hooks(:adhonorem, AdHonorem::Badge)
     end

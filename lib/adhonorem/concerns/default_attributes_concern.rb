@@ -7,6 +7,18 @@ module AdHonorem
         false
       end
 
+      def default_category
+        AdHonorem::Category.find(AdHonorem.configuration.default_category)
+      rescue StaticRecord::RecordNotFound => e
+        if AdHonorem.configuration.default_category == 'general'
+          puts 'Make sure you generated the default category'\
+            " with 'rails g adhonorem:default'"
+          puts 'You can also change the default category in'\
+            ' the initializers/adhonorem.rb'
+        end
+        raise e
+      end
+
       def default_points
         AdHonorem.configuration.default_points
       end

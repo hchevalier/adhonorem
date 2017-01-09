@@ -2,7 +2,6 @@ class NormalBadge < AdHonorem::Badge
   attribute :slug,          'normal_badge'
   attribute :name,          'Normal badge'
   attribute :description,   'This is a normal badge'
-  attribute :category,      'General'
   attribute :points,        10
   attribute :icon_locked,   Rails.root.join('public', 'badges', 'locked', 'normal.png')
   attribute :icon_unlocked, Rails.root.join('public', 'badges', 'unlocked', 'normal.png')

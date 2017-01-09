@@ -2,7 +2,6 @@ class DefaultBadge < AdHonorem::Badge
   attribute :slug,          'default_badge'
   attribute :name,          'Default badge'
   attribute :description,   'This is a default badge'
-  attribute :category,      'General'
   attribute :icon_locked,   'normal.png'
   attribute :icon_unlocked, 'normal.png'
 

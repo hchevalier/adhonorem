@@ -2,7 +2,6 @@ class TwoObjectivesBadge < AdHonorem::Badge
   attribute :slug,          'two_objectives_badge'
   attribute :name,          'Two Objectives badge'
   attribute :description,   'This is a two-objectives badge'
-  attribute :category,      'General'
   attribute :points,        10
   attribute :icon_locked,   Rails.root.join('public', 'badges', 'locked', 'two_objectives.png')
   attribute :icon_unlocked, Rails.root.join('public', 'badges', 'unlocked', 'two_objectives.png')

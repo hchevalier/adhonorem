@@ -2,7 +2,6 @@ class LegacyBadge < AdHonorem::Badge
   attribute :slug,          'legacy_badge'
   attribute :name,          'Legacy badge'
   attribute :description,   'This is a legacy badge'
-  attribute :category,      'General'
   attribute :points,        10
   attribute :icon_locked,   Rails.root.join('public', 'badges', 'locked', 'legacy.png')
   attribute :icon_unlocked, Rails.root.join('public', 'badges', 'unlocked', 'legacy.png')

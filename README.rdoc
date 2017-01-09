@@ -16,6 +16,9 @@ and run the bundle install command.
 
 Ensure you already have an ActiveRecord model representing your users before executing the following commands:
 
+  # Generate default Category
+  rails g adhonorem:default
+
   # Generate initializer with AdHonorem settings
   rails g adhonorem:initializer
 

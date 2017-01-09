@@ -20,4 +20,12 @@ module Adhonorem
       template 'initializer.rb', 'config/initializers/adhonorem.rb', @model_name
     end
   end
+
+  class DefaultGenerator < Rails::Generators::Base # :nodoc:
+    source_root File.expand_path('../templates', __FILE__)
+
+    def copy_files
+      template 'general_category.rb', 'app/models/general_category.rb'
+    end
+  end
 end
